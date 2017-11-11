@@ -1,11 +1,29 @@
 #include "global.h"
 #include "MemoryCardDriver.h"
+#include "MemoryCardDriverThreaded_Directory.h"
 #include "RageFileManager.h"
 #include "RageLog.h"
 #include "Foreach.h"
 #include "ProfileManager.h"
 
 static const RString TEMP_MOUNT_POINT = "/@mctemptimeout/";
+
+enum MemoryCardDriverType {
+	MemoryCardDriverType_Usb,
+	MemoryCardDriverType_Directory,
+	NUM_MemoryCardDriverType,
+	MemoryCardDriverType_Invalid
+};
+
+static const char *MemoryCardDriverTypeNames[] = {
+	"USB",
+	"Directory"
+};
+XToString(MemoryCardDriverType);
+StringToX(MemoryCardDriverType);
+LuaXType(MemoryCardDriverType);
+
+Preference<MemoryCardDriverType> g_MemoryCardDriver("MemoryCardDriver", MemoryCardDriverType_Usb);
 
 bool UsbStorageDevice::operator==(const UsbStorageDevice& other) const
 {
@@ -126,9 +144,17 @@ MemoryCardDriver *MemoryCardDriver::Create()
 {
 	MemoryCardDriver *ret = NULL;
 
+	switch( g_MemoryCardDriver )
+	{
+		case MemoryCardDriverType_Directory:
+			ret = new MemoryCardDriverThreaded_Directory;
+			break;
+		case MemoryCardDriverType_Usb:
 #ifdef ARCH_MEMORY_CARD_DRIVER
-	ret = new ARCH_MEMORY_CARD_DRIVER;
+			ret = new ARCH_MEMORY_CARD_DRIVER;
 #endif
+			break;
+	}
 
 	if( !ret )
 		ret = new MemoryCardDriver_Null;

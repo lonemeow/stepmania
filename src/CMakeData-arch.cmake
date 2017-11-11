@@ -153,10 +153,12 @@ source_group("Arch Specific\\\\Movie Texture" FILES ${SMDATA_ARCH_MOVIE_TEXTURE_
 
 list(APPEND SMDATA_ARCH_MEMORY_SRC
   "arch/MemoryCard/MemoryCardDriver.cpp"
+  "arch/MemoryCard/MemoryCardDriverThreaded_Directory.cpp"
 )
 list(APPEND SMDATA_ARCH_MEMORY_HPP
   "arch/MemoryCard/MemoryCardDriver.h"
   "arch/MemoryCard/MemoryCardDriver_Null.h"
+  "arch/MemoryCard/MemoryCardDriverThreaded_Directory.h"
 )
 
 if(WIN32)
