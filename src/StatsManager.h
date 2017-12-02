@@ -35,6 +35,9 @@ public:
 	// Lua
 	void PushSelf( lua_State *L );
 
+protected:
+	static void SaveUploadFile( const StageStats *pSS );
+
 private:
 	StageStats m_AccumPlayedStageStats;
 };

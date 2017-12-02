@@ -234,53 +234,56 @@ void StatsManager::CommitStatsToProfiles( const StageStats *pSS )
 	// in it just accumulate uselessly, wasting several seconds when finishing
 	// a song.  So this pref disables it. -Kyz
 	if(!PREFSMAN->m_DisableUploadDir)
+		SaveUploadFile( pSS );
+
+	//FileCopy( "Data/TempTestGroups.xml", "Save/Upload/data.xml" );
+}
+
+void StatsManager::SaveUploadFile( const StageStats *pSS )
+{
+	// Save recent scores
+	auto_ptr<XNode> xml( new XNode("Stats") );
+	xml->AppendChild( "MachineGuid",  PROFILEMAN->GetMachineProfile()->m_sGuid );
+
+	XNode *recent = NULL;
+	if( GAMESTATE->IsCourseMode() )
+		recent = xml->AppendChild( new XNode("RecentCourseScores") );
+	else
+		recent = xml->AppendChild( new XNode("RecentSongScores") );
+
+	if(!GAMESTATE->m_bMultiplayer)
 	{
-		// Save recent scores
-		auto_ptr<XNode> xml( new XNode("Stats") );
-		xml->AppendChild( "MachineGuid",  PROFILEMAN->GetMachineProfile()->m_sGuid );
-
-		XNode *recent = NULL;
-		if( GAMESTATE->IsCourseMode() )
-			recent = xml->AppendChild( new XNode("RecentCourseScores") );
-		else
-			recent = xml->AppendChild( new XNode("RecentSongScores") );
-
-		if(!GAMESTATE->m_bMultiplayer)
+		FOREACH_HumanPlayer( p )
 		{
-			FOREACH_HumanPlayer( p )
-			{
-				if( pSS->m_player[p].m_HighScore.IsEmpty() )
-					continue;
-				recent->AppendChild( MakeRecentScoreNode( *pSS, GAMESTATE->m_pCurTrail[p], pSS->m_player[p], MultiPlayer_Invalid ) );
-			}
+			if( pSS->m_player[p].m_HighScore.IsEmpty() )
+				continue;
+			recent->AppendChild( MakeRecentScoreNode( *pSS, GAMESTATE->m_pCurTrail[p], pSS->m_player[p], MultiPlayer_Invalid ) );
 		}
-		else
+	}
+	else
+	{
+		FOREACH_EnabledMultiPlayer( mp )
 		{
-			FOREACH_EnabledMultiPlayer( mp )
-			{
-				if( pSS->m_multiPlayer[mp].m_HighScore.IsEmpty() )
-					continue;
-				recent->AppendChild( MakeRecentScoreNode( *pSS, GAMESTATE->m_pCurTrail[GAMESTATE->GetMasterPlayerNumber()], pSS->m_multiPlayer[mp], mp ) );
-			}
-		}
-
-		RString sDate = DateTime::GetNowDate().GetString();
-		sDate.Replace(":","-");
-
-		const RString UPLOAD_DIR = "/Save/Upload/";
-		RString sFileNameNoExtension = Profile::MakeUniqueFileNameNoExtension(UPLOAD_DIR, sDate + " " );
-		RString fn = UPLOAD_DIR + sFileNameNoExtension + ".xml";
-		
-		bool bSaved = XmlFileUtil::SaveToFile( xml.get(), fn, "", false );
-		
-		if( bSaved )
-		{
-			RString sStatsXmlSigFile = fn + SIGNATURE_APPEND;
-			CryptManager::SignFileToFile(fn, sStatsXmlSigFile);
+			if( pSS->m_multiPlayer[mp].m_HighScore.IsEmpty() )
+				continue;
+			recent->AppendChild( MakeRecentScoreNode( *pSS, GAMESTATE->m_pCurTrail[GAMESTATE->GetMasterPlayerNumber()], pSS->m_multiPlayer[mp], mp ) );
 		}
 	}
 
-	//FileCopy( "Data/TempTestGroups.xml", "Save/Upload/data.xml" );
+	RString sDate = DateTime::GetNowDate().GetString();
+	sDate.Replace(":","-");
+
+	const RString UPLOAD_DIR = "/Save/Upload/";
+	RString sFileNameNoExtension = Profile::MakeUniqueFileNameNoExtension(UPLOAD_DIR, sDate + " " );
+	RString fn = UPLOAD_DIR + sFileNameNoExtension + ".xml";
+
+	bool bSaved = XmlFileUtil::SaveToFile( xml.get(), fn, "", false );
+
+	if( bSaved )
+	{
+		RString sStatsXmlSigFile = fn + SIGNATURE_APPEND;
+		CryptManager::SignFileToFile(fn, sStatsXmlSigFile);
+	}
 }
 
 void StatsManager::UnjoinPlayer( PlayerNumber pn )
