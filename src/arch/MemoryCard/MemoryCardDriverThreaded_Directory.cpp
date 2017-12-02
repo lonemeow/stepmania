@@ -8,6 +8,8 @@
 #include "PlayerNumber.h"
 #include "MemoryCardManager.h"
 
+static int g_currentSerial = 0;
+
 static struct timespec invalid_timespec = { 0, 0 };
 
 bool operator==( const struct timespec &a, const struct timespec &b )
@@ -76,6 +78,7 @@ void MemoryCardDriverThreaded_Directory::GetUSBStorageDevices( vector<UsbStorage
 		{
 			UsbStorageDevice dev;
 			dev.sOsMountDir = profileDir;
+ 			dev.sSerial = StringConversion::ToString(g_currentSerial++);
 			vDevicesOut.push_back( dev );
 		}
 	}
