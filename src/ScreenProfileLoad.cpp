@@ -15,7 +15,6 @@ void ScreenProfileLoad::Init()
 
 void ScreenProfileLoad::BeginScreen()
 {
-	m_bHaveProfileToLoad = GAMESTATE->HaveProfileToLoad();
 	ScreenWithMenuElements::BeginScreen();
 }
 
@@ -26,11 +25,8 @@ bool ScreenProfileLoad::Input( const InputEventPlus &input )
 
 void ScreenProfileLoad::Continue()
 {
-	if( m_bHaveProfileToLoad )
-	{
-		GAMESTATE->LoadProfiles( LOAD_EDITS );
-		SCREENMAN->ZeroNextUpdate();
-	}
+	GAMESTATE->LoadProfiles( LOAD_EDITS );
+	SCREENMAN->ZeroNextUpdate();
 
 	StartTransitioningScreen( SM_GoToNextScreen );
 }
@@ -51,7 +47,7 @@ public:
 	}
 	static int HaveProfileToLoad( T* p, lua_State *L )
 	{
-		LuaHelpers::Push( L, p->m_bHaveProfileToLoad );
+		LuaHelpers::Push( L, true );
 		return 1;
 	}
 	

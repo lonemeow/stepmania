@@ -13,8 +13,6 @@ public:
 
 	virtual void PushSelf( lua_State *L );
 
-	bool m_bHaveProfileToLoad;
-
 	ThemeMetric<bool>	LOAD_EDITS;
 };
 

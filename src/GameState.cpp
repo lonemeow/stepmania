@@ -587,6 +587,9 @@ void GameState::BeginGame()
 
 void GameState::LoadProfiles( bool bLoadEdits )
 {
+	FOREACH_HumanPlayer( pn )
+		ResetPlayer( pn );
+
 	// Unlock any cards that we might want to load.
 	FOREACH_HumanPlayer( pn )
 		if( !PROFILEMAN->IsPersistentProfile(pn) )
