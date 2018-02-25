@@ -13,6 +13,7 @@
 #include "XmlFile.h"
 #include "CryptManager.h"
 #include "XmlFileUtil.h"
+#include "Song.h"
 
 StatsManager*	STATSMAN = NULL;	// global object accessible from anywhere in the program
 
@@ -227,6 +228,10 @@ void StatsManager::CommitStatsToProfiles( const StageStats *pSS )
 				LOG->Trace("Adding stats to player profile...");
 				AddPlayerStatsToProfile( pPlayerProfile, *pSS, pn );
 			}
+
+			// No marathons etc for now...
+			if ( pSS->m_playMode == PLAY_MODE_REGULAR )
+				SavePadmissScore( &pSS->m_player[pn] );
 		}
 	}
 
@@ -284,6 +289,56 @@ void StatsManager::SaveUploadFile( const StageStats *pSS )
 		RString sStatsXmlSigFile = fn + SIGNATURE_APPEND;
 		CryptManager::SignFileToFile(fn, sStatsXmlSigFile);
 	}
+}
+
+void StatsManager::SavePadmissScore( const PlayerStageStats *pPSS )
+{
+	auto_ptr<XNode> xml( new XNode("SongScore") );
+
+	RString sDate = DateTime::GetNowDate().GetString();
+	sDate.Replace(":","-");
+
+	XNode *taps = xml->AppendChild( "TapNoteScores" );
+	FOREACH_ENUM( TapNoteScore, tns )
+		if ( tns != TNS_None )
+			taps->AppendChild( TapNoteScoreToString( tns ), pPSS->m_iTapNoteScores[ tns ] );
+
+	XNode *radar_actual = xml->AppendChild( "RadarActual" );
+	radar_actual->AppendChild( pPSS->m_radarActual.CreateNode( true, false) );
+
+	XNode *radar_possible = xml->AppendChild( "RadarPossible" );
+	radar_possible->AppendChild( pPSS->m_radarPossible.CreateNode( true, false ) );
+
+	Profile *pp = PROFILEMAN->GetProfile( pPSS->m_player_number );
+	xml->AppendChild( "ScoreValue", pPSS->GetPercentDancePoints() );
+	xml->AppendChild( "PlayerNumber", pPSS->m_player_number );
+	xml->AppendChild( "PlayerName", pp->m_sDisplayName );
+	xml->AppendChild( "PlayerGuid", pp->m_sGuid );
+
+	Steps *steps = pPSS->m_vpPossibleSteps[0]; // XXX Courses and such
+	steps->Decompress(); // Hashing won't work unless the steps are decompressed
+	RString notedata;
+	steps->GetSMNoteData(notedata);
+	XNode *stepdata = xml->AppendChild( "Steps" );
+	stepdata->AppendChild( "Hash", steps->GetHash() );
+	stepdata->AppendChild( "Meter", steps->GetMeter() );
+	stepdata->AppendChild( "StepArtist", steps->GetCredit() );
+	stepdata->AppendChild( "StepData", notedata );
+	stepdata->AppendChild( "StepsType", steps->m_StepsTypeStr );
+
+	Song *song = steps->m_pSong;
+	XNode *songdata = xml->AppendChild( "Song" );
+	songdata->AppendChild( "Title", song->m_sMainTitle );
+	songdata->AppendChild( "TitleTranslit", song->m_sMainTitleTranslit );
+	songdata->AppendChild( "SubTitle", song->m_sSubTitle );
+	songdata->AppendChild( "SubTitleTranslit", song->m_sSubTitleTranslit );
+	songdata->AppendChild( "Artist", song->m_sArtist );
+	songdata->AppendChild( "ArtistTranslit", song->m_sArtistTranslit );
+	songdata->AppendChild( "Duration", song->m_fMusicLengthSeconds );
+
+	RString dir = "/Save/Padmiss/";
+	RString fn = dir + Profile::MakeUniqueFileNameNoExtension( dir, sDate + " " ) + ".xml";
+	XmlFileUtil::SaveToFile( xml.get(), fn, "", true );
 }
 
 void StatsManager::UnjoinPlayer( PlayerNumber pn )

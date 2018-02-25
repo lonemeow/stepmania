@@ -37,6 +37,7 @@ public:
 
 protected:
 	static void SaveUploadFile( const StageStats *pSS );
+	static void SavePadmissScore( const PlayerStageStats *pSS );
 
 private:
 	StageStats m_AccumPlayedStageStats;
