@@ -14,6 +14,8 @@
 #include "CryptManager.h"
 #include "XmlFileUtil.h"
 #include "Song.h"
+#include "RageFileDriverMemory.h"
+#include "NotesWriterSM.h"
 
 StatsManager*	STATSMAN = NULL;	// global object accessible from anywhere in the program
 
@@ -316,18 +318,20 @@ void StatsManager::SavePadmissScore( const PlayerStageStats *pPSS )
 	xml->AppendChild( "PlayerGuid", pp->m_sGuid );
 
 	Steps *steps = pPSS->m_vpPossibleSteps[0]; // XXX Courses and such
+	Song *song = steps->m_pSong;
 	steps->Decompress(); // Hashing won't work unless the steps are decompressed
-	RString notedata;
-	steps->GetSMNoteData(notedata);
 	XNode *stepdata = xml->AppendChild( "Steps" );
 	stepdata->AppendChild( "Hash", steps->GetHash() );
 	stepdata->AppendChild( "Meter", steps->GetMeter() );
 	stepdata->AppendChild( "StepArtist", steps->GetCredit() );
-	stepdata->AppendChild( "StepData", notedata );
 	stepdata->AppendChild( "StepsType", steps->m_StepsTypeStr );
+	RageFileObjMem f;
+	vector<Steps*> stepv;
+	stepv.push_back(steps);
+	NotesWriterSM::Write( f, *song, stepv );
+	stepdata->AppendChild( "StepData", f.GetString() );
 
-	Song *song = steps->m_pSong;
-	XNode *songdata = xml->AppendChild( "Song" );
+	XNode *songdata = xml->AppendChild( "SongData" );
 	songdata->AppendChild( "Title", song->m_sMainTitle );
 	songdata->AppendChild( "TitleTranslit", song->m_sMainTitleTranslit );
 	songdata->AppendChild( "SubTitle", song->m_sSubTitle );

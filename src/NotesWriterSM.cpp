@@ -23,7 +23,7 @@ ThemeMetric<bool> USE_CREDIT	( "NotesWriterSM", "DescriptionUsesCreditField" );
  * @brief Write out the common tags for .SM files.
  * @param f the file in question.
  * @param out the Song in question. */
-static void WriteGlobalTags( RageFile &f, Song &out )
+static void WriteGlobalTags( RageFileBasic &f, Song &out )
 {
 	TimingData &timing = out.m_SongTiming;
 	f.PutLine( ssprintf( "#TITLE:%s;", SmEscape(out.m_sMainTitle).c_str() ) );
@@ -265,6 +265,11 @@ bool NotesWriterSM::Write( RString sPath, Song &out, const vector<Steps*>& vpSte
 		return false;
 	}
 
+    Write( f, out, vpStepsToSave );
+}
+
+bool NotesWriterSM::Write( RageFileBasic &f, Song &out, const vector<Steps*>& vpStepsToSave )
+{
 	WriteGlobalTags( f, out );
 
 	FOREACH_CONST( Steps*, vpStepsToSave, s ) 
