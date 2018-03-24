@@ -347,86 +347,89 @@ void StatsManager::SavePadmissScore( const StageStats *pSS, PlayerNumber pn )
 	const PlayerOptions &opts = GAMESTATE->m_pPlayerState[ pn ]->m_PlayerOptions.Get( ModsLevel_Preferred );
 	XNode *mods = xml->AppendChild( "Mods" );
 	mods->AppendChild( "MusicRate", pSS->m_fMusicRate );
-#define ADD_BOOLEAN_OPTION( parent, name, opt ) \
-	if ( opt ) \
-		parent->AppendChild( name )
+#define ADD_BOOLEAN_OPTION( parent, name, opts ) \
+	if ( opts[ PlayerOptions::name ] ) \
+		parent->AppendChild( #name )
 
 	XNode *turns = mods->AppendChild( "Turns" );
-	ADD_BOOLEAN_OPTION( turns, "Mirror",       opts.m_bTurns[ PlayerOptions::TURN_MIRROR ] );
-	ADD_BOOLEAN_OPTION( turns, "Backwards",    opts.m_bTurns[ PlayerOptions::TURN_BACKWARDS] );
-	ADD_BOOLEAN_OPTION( turns, "Left",         opts.m_bTurns[ PlayerOptions::TURN_LEFT ] );
-	ADD_BOOLEAN_OPTION( turns, "Right",        opts.m_bTurns[ PlayerOptions::TURN_RIGHT ] );
-	ADD_BOOLEAN_OPTION( turns, "Shuffle",      opts.m_bTurns[ PlayerOptions::TURN_SHUFFLE ] );
-	ADD_BOOLEAN_OPTION( turns, "SoftShuffle",  opts.m_bTurns[ PlayerOptions::TURN_SOFT_SHUFFLE ] );
-	ADD_BOOLEAN_OPTION( turns, "SuperShuffle", opts.m_bTurns[ PlayerOptions::TURN_SUPER_SHUFFLE ] );
+	ADD_BOOLEAN_OPTION( turns, TURN_MIRROR, opts.m_bTurns );
+	ADD_BOOLEAN_OPTION( turns, TURN_BACKWARDS, opts.m_bTurns );
+	ADD_BOOLEAN_OPTION( turns, TURN_LEFT, opts.m_bTurns );
+	ADD_BOOLEAN_OPTION( turns, TURN_RIGHT, opts.m_bTurns );
+	ADD_BOOLEAN_OPTION( turns, TURN_SHUFFLE, opts.m_bTurns );
+	ADD_BOOLEAN_OPTION( turns, TURN_SOFT_SHUFFLE, opts.m_bTurns );
+	ADD_BOOLEAN_OPTION( turns, TURN_SUPER_SHUFFLE, opts.m_bTurns );
 
 	XNode *transforms = mods->AppendChild( "Transforms" );
-	ADD_BOOLEAN_OPTION( transforms, "NoHolds",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOHOLDS ] );
-	ADD_BOOLEAN_OPTION( transforms, "NoRolls",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOROLLS ] );
-	ADD_BOOLEAN_OPTION( transforms, "NoMines",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOMINES ] );
-	ADD_BOOLEAN_OPTION( transforms, "Little",      opts.m_bTransforms[ PlayerOptions::TRANSFORM_LITTLE ] );
-	ADD_BOOLEAN_OPTION( transforms, "Wide",        opts.m_bTransforms[ PlayerOptions::TRANSFORM_WIDE ] );
-	ADD_BOOLEAN_OPTION( transforms, "Big",         opts.m_bTransforms[ PlayerOptions::TRANSFORM_BIG ] );
-	ADD_BOOLEAN_OPTION( transforms, "Quick",       opts.m_bTransforms[ PlayerOptions::TRANSFORM_QUICK ] );
-	ADD_BOOLEAN_OPTION( transforms, "BMRize",      opts.m_bTransforms[ PlayerOptions::TRANSFORM_BMRIZE ] );
-	ADD_BOOLEAN_OPTION( transforms, "Skippy",      opts.m_bTransforms[ PlayerOptions::TRANSFORM_SKIPPY ] );
-	ADD_BOOLEAN_OPTION( transforms, "Mines",       opts.m_bTransforms[ PlayerOptions::TRANSFORM_MINES ] );
-	ADD_BOOLEAN_OPTION( transforms, "AttackMines", opts.m_bTransforms[ PlayerOptions::TRANSFORM_ATTACKMINES ] );
-	ADD_BOOLEAN_OPTION( transforms, "Echo",        opts.m_bTransforms[ PlayerOptions::TRANSFORM_ECHO ] );
-	ADD_BOOLEAN_OPTION( transforms, "Stomp",       opts.m_bTransforms[ PlayerOptions::TRANSFORM_STOMP ] );
-	ADD_BOOLEAN_OPTION( transforms, "Planted",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_PLANTED ] );
-	ADD_BOOLEAN_OPTION( transforms, "Floored",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_FLOORED ] );
-	ADD_BOOLEAN_OPTION( transforms, "Twister",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_TWISTER ] );
-	ADD_BOOLEAN_OPTION( transforms, "HoldRolls",   opts.m_bTransforms[ PlayerOptions::TRANSFORM_HOLDROLLS ] );
-	ADD_BOOLEAN_OPTION( transforms, "NoJumps",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOJUMPS ] );
-	ADD_BOOLEAN_OPTION( transforms, "NoHands",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOHANDS ] );
-	ADD_BOOLEAN_OPTION( transforms, "NoLifts",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOLIFTS ] );
-	ADD_BOOLEAN_OPTION( transforms, "NoFakes",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOFAKES ] );
-	ADD_BOOLEAN_OPTION( transforms, "NoQuads",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOQUADS ] );
-	ADD_BOOLEAN_OPTION( transforms, "NoStretch",   opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOSTRETCH ] );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_NOHOLDS, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_NOROLLS, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_NOMINES, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_LITTLE, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_WIDE, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_BIG, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_QUICK, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_BMRIZE, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_SKIPPY, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_MINES, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_ATTACKMINES, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_ECHO, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_STOMP, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_PLANTED, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_FLOORED, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_TWISTER, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_HOLDROLLS, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_NOJUMPS, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_NOHANDS, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_NOLIFTS, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_NOFAKES, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_NOQUADS, opts.m_bTransforms );
+	ADD_BOOLEAN_OPTION( transforms, TRANSFORM_NOSTRETCH, opts.m_bTransforms );
 
-#define ADD_FLOAT_OPTION( parent, name, val ) \
-	if ( val != 0.0f ) \
-		parent->AppendChild( name, val )
+#define ADD_FLOAT_OPTION( parent, name, opts ) \
+    do { \
+        float val = opts[ PlayerOptions::name ]; \
+		if ( val != 0.0f ) \
+			parent->AppendChild( #name, val ); \
+    } while (0)
 
-	XNode *accels = mods->AppendChild( "Accel" );
-	ADD_FLOAT_OPTION( accels, "Boost",     opts.m_fAccels[ PlayerOptions::ACCEL_BOOST ] );
-	ADD_FLOAT_OPTION( accels, "Brake",     opts.m_fAccels[ PlayerOptions::ACCEL_BRAKE ] );
-	ADD_FLOAT_OPTION( accels, "Wave",      opts.m_fAccels[ PlayerOptions::ACCEL_WAVE ] );
-	ADD_FLOAT_OPTION( accels, "Expand",    opts.m_fAccels[ PlayerOptions::ACCEL_EXPAND ] );
-	ADD_FLOAT_OPTION( accels, "Boomerang", opts.m_fAccels[ PlayerOptions::ACCEL_BOOMERANG ] );
+	XNode *accels = mods->AppendChild( "Accels" );
+	ADD_FLOAT_OPTION( accels, ACCEL_BOOST, opts.m_fAccels );
+	ADD_FLOAT_OPTION( accels, ACCEL_BRAKE, opts.m_fAccels );
+	ADD_FLOAT_OPTION( accels, ACCEL_WAVE, opts.m_fAccels );
+	ADD_FLOAT_OPTION( accels, ACCEL_EXPAND, opts.m_fAccels );
+	ADD_FLOAT_OPTION( accels, ACCEL_BOOMERANG, opts.m_fAccels );
 
 	XNode *effects = mods->AppendChild( "Effects" );
-	ADD_FLOAT_OPTION( effects, "Drunk",     opts.m_fEffects[ PlayerOptions::EFFECT_DRUNK ] );
-	ADD_FLOAT_OPTION( effects, "Dizzy",     opts.m_fEffects[ PlayerOptions::EFFECT_DIZZY ] );
-	ADD_FLOAT_OPTION( effects, "Confusion", opts.m_fEffects[ PlayerOptions::EFFECT_CONFUSION ] );
-	ADD_FLOAT_OPTION( effects, "Mini",      opts.m_fEffects[ PlayerOptions::EFFECT_MINI ] );
-	ADD_FLOAT_OPTION( effects, "Tiny",      opts.m_fEffects[ PlayerOptions::EFFECT_TINY ] );
-	ADD_FLOAT_OPTION( effects, "Flip",      opts.m_fEffects[ PlayerOptions::EFFECT_FLIP ] );
-	ADD_FLOAT_OPTION( effects, "Invert",    opts.m_fEffects[ PlayerOptions::EFFECT_INVERT ] );
-	ADD_FLOAT_OPTION( effects, "Tornado",   opts.m_fEffects[ PlayerOptions::EFFECT_TORNADO ] );
-	ADD_FLOAT_OPTION( effects, "Tipsy",     opts.m_fEffects[ PlayerOptions::EFFECT_TIPSY ] );
-	ADD_FLOAT_OPTION( effects, "Bumpy",     opts.m_fEffects[ PlayerOptions::EFFECT_BUMPY ] );
-	ADD_FLOAT_OPTION( effects, "Beat",      opts.m_fEffects[ PlayerOptions::EFFECT_BEAT ] );
-	ADD_FLOAT_OPTION( effects, "XMode",     opts.m_fEffects[ PlayerOptions::EFFECT_XMODE ] );
-	ADD_FLOAT_OPTION( effects, "Twirl",     opts.m_fEffects[ PlayerOptions::EFFECT_TWIRL ] );
-	ADD_FLOAT_OPTION( effects, "Roll",      opts.m_fEffects[ PlayerOptions::EFFECT_ROLL ] );
+	ADD_FLOAT_OPTION( effects, EFFECT_DRUNK, opts.m_fEffects );
+	ADD_FLOAT_OPTION( effects, EFFECT_DIZZY, opts.m_fEffects );
+	ADD_FLOAT_OPTION( effects, EFFECT_CONFUSION, opts.m_fEffects );
+	ADD_FLOAT_OPTION( effects, EFFECT_MINI, opts.m_fEffects );
+	ADD_FLOAT_OPTION( effects, EFFECT_TINY, opts.m_fEffects );
+	ADD_FLOAT_OPTION( effects, EFFECT_FLIP, opts.m_fEffects );
+	ADD_FLOAT_OPTION( effects, EFFECT_INVERT, opts.m_fEffects );
+	ADD_FLOAT_OPTION( effects, EFFECT_TORNADO, opts.m_fEffects );
+	ADD_FLOAT_OPTION( effects, EFFECT_TIPSY, opts.m_fEffects );
+	ADD_FLOAT_OPTION( effects, EFFECT_BUMPY, opts.m_fEffects );
+	ADD_FLOAT_OPTION( effects, EFFECT_BEAT, opts.m_fEffects );
+	ADD_FLOAT_OPTION( effects, EFFECT_XMODE, opts.m_fEffects );
+	ADD_FLOAT_OPTION( effects, EFFECT_TWIRL, opts.m_fEffects );
+	ADD_FLOAT_OPTION( effects, EFFECT_ROLL, opts.m_fEffects );
 
 	XNode *appearances = mods->AppendChild( "Appearances" );
-	ADD_FLOAT_OPTION( appearances, "Hidden",       opts.m_fAppearances[ PlayerOptions::APPEARANCE_HIDDEN ] );
-	ADD_FLOAT_OPTION( appearances, "HiddenOffset", opts.m_fAppearances[ PlayerOptions::APPEARANCE_HIDDEN_OFFSET ] );
-	ADD_FLOAT_OPTION( appearances, "Sudden",       opts.m_fAppearances[ PlayerOptions::APPEARANCE_SUDDEN ] );
-	ADD_FLOAT_OPTION( appearances, "SuddenOffset", opts.m_fAppearances[ PlayerOptions::APPEARANCE_SUDDEN_OFFSET ] );
-	ADD_FLOAT_OPTION( appearances, "Stealth",      opts.m_fAppearances[ PlayerOptions::APPEARANCE_STEALTH ] );
-	ADD_FLOAT_OPTION( appearances, "Blink",        opts.m_fAppearances[ PlayerOptions::APPEARANCE_BLINK ] );
-	ADD_FLOAT_OPTION( appearances, "RandomVanish", opts.m_fAppearances[ PlayerOptions::APPEARANCE_RANDOMVANISH ] );
+	ADD_FLOAT_OPTION( appearances, APPEARANCE_HIDDEN, opts.m_fAppearances );
+	ADD_FLOAT_OPTION( appearances, APPEARANCE_HIDDEN_OFFSET, opts.m_fAppearances );
+	ADD_FLOAT_OPTION( appearances, APPEARANCE_SUDDEN, opts.m_fAppearances );
+	ADD_FLOAT_OPTION( appearances, APPEARANCE_SUDDEN_OFFSET, opts.m_fAppearances );
+	ADD_FLOAT_OPTION( appearances, APPEARANCE_STEALTH, opts.m_fAppearances );
+	ADD_FLOAT_OPTION( appearances, APPEARANCE_BLINK, opts.m_fAppearances );
+	ADD_FLOAT_OPTION( appearances, APPEARANCE_RANDOMVANISH, opts.m_fAppearances );
 
 	XNode *scrolls = mods->AppendChild( "Scrolls" );
-	ADD_FLOAT_OPTION( scrolls, "Reverse",   opts.m_fScrolls[ PlayerOptions::SCROLL_REVERSE ] );
-	ADD_FLOAT_OPTION( scrolls, "Split",     opts.m_fScrolls[ PlayerOptions::SCROLL_SPLIT ] );
-	ADD_FLOAT_OPTION( scrolls, "Alternate", opts.m_fScrolls[ PlayerOptions::SCROLL_ALTERNATE ] );
-	ADD_FLOAT_OPTION( scrolls, "Cross",     opts.m_fScrolls[ PlayerOptions::SCROLL_CROSS ] );
-	ADD_FLOAT_OPTION( scrolls, "Centered",  opts.m_fScrolls[ PlayerOptions::SCROLL_CENTERED ] );
+	ADD_FLOAT_OPTION( scrolls, SCROLL_REVERSE, opts.m_fScrolls );
+	ADD_FLOAT_OPTION( scrolls, SCROLL_SPLIT, opts.m_fScrolls );
+	ADD_FLOAT_OPTION( scrolls, SCROLL_ALTERNATE, opts.m_fScrolls );
+	ADD_FLOAT_OPTION( scrolls, SCROLL_CROSS, opts.m_fScrolls );
+	ADD_FLOAT_OPTION( scrolls, SCROLL_CENTERED, opts.m_fScrolls );
 
 	mods->AppendChild( "NoteSkin", opts.m_sNoteSkin );
 
