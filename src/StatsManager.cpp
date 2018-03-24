@@ -16,6 +16,8 @@
 #include "Song.h"
 #include "RageFileDriverMemory.h"
 #include "NotesWriterSM.h"
+#include "PlayerOptions.h"
+#include "PlayerState.h"
 
 StatsManager*	STATSMAN = NULL;	// global object accessible from anywhere in the program
 
@@ -233,7 +235,7 @@ void StatsManager::CommitStatsToProfiles( const StageStats *pSS )
 
 			// No marathons etc for now...
 			if ( pSS->m_playMode == PLAY_MODE_REGULAR )
-				SavePadmissScore( &pSS->m_player[pn] );
+				SavePadmissScore( pSS, pn );
 		}
 	}
 
@@ -293,8 +295,10 @@ void StatsManager::SaveUploadFile( const StageStats *pSS )
 	}
 }
 
-void StatsManager::SavePadmissScore( const PlayerStageStats *pPSS )
+void StatsManager::SavePadmissScore( const StageStats *pSS, PlayerNumber pn )
 {
+    const PlayerStageStats *playerStats = &pSS->m_player[ pn ];
+
 	auto_ptr<XNode> xml( new XNode("SongScore") );
 
 	RString sDate = DateTime::GetNowDate().GetString();
@@ -303,21 +307,21 @@ void StatsManager::SavePadmissScore( const PlayerStageStats *pPSS )
 	XNode *taps = xml->AppendChild( "TapNoteScores" );
 	FOREACH_ENUM( TapNoteScore, tns )
 		if ( tns != TNS_None )
-			taps->AppendChild( TapNoteScoreToString( tns ), pPSS->m_iTapNoteScores[ tns ] );
+			taps->AppendChild( TapNoteScoreToString( tns ), playerStats->m_iTapNoteScores[ tns ] );
 
 	XNode *radar_actual = xml->AppendChild( "RadarActual" );
-	radar_actual->AppendChild( pPSS->m_radarActual.CreateNode( true, false) );
+	radar_actual->AppendChild( playerStats->m_radarActual.CreateNode( true, false) );
 
 	XNode *radar_possible = xml->AppendChild( "RadarPossible" );
-	radar_possible->AppendChild( pPSS->m_radarPossible.CreateNode( true, false ) );
+	radar_possible->AppendChild( playerStats->m_radarPossible.CreateNode( true, false ) );
 
-	Profile *pp = PROFILEMAN->GetProfile( pPSS->m_player_number );
-	xml->AppendChild( "ScoreValue", pPSS->GetPercentDancePoints() );
-	xml->AppendChild( "PlayerNumber", pPSS->m_player_number );
+	Profile *pp = PROFILEMAN->GetProfile( playerStats->m_player_number );
+	xml->AppendChild( "ScoreValue", playerStats->GetPercentDancePoints() );
+	xml->AppendChild( "PlayerNumber", playerStats->m_player_number );
 	xml->AppendChild( "PlayerName", pp->m_sDisplayName );
 	xml->AppendChild( "PlayerGuid", pp->m_sGuid );
 
-	Steps *steps = pPSS->m_vpPossibleSteps[0]; // XXX Courses and such
+	Steps *steps = playerStats->m_vpPossibleSteps[0]; // XXX Courses and such
 	Song *song = steps->m_pSong;
 	steps->Decompress(); // Hashing won't work unless the steps are decompressed
 	XNode *stepdata = xml->AppendChild( "Steps" );
@@ -339,6 +343,115 @@ void StatsManager::SavePadmissScore( const PlayerStageStats *pPSS )
 	songdata->AppendChild( "Artist", song->m_sArtist );
 	songdata->AppendChild( "ArtistTranslit", song->m_sArtistTranslit );
 	songdata->AppendChild( "Duration", song->m_fMusicLengthSeconds );
+
+	const PlayerOptions &opts = GAMESTATE->m_pPlayerState[ pn ]->m_PlayerOptions.Get( ModsLevel_Preferred );
+	XNode *mods = xml->AppendChild( "Mods" );
+	mods->AppendChild( "MusicRate", pSS->m_fMusicRate );
+#define ADD_BOOLEAN_OPTION( parent, name, opt ) \
+	if ( opt ) \
+		parent->AppendChild( name )
+
+	XNode *turns = mods->AppendChild( "Turns" );
+	ADD_BOOLEAN_OPTION( turns, "Mirror",       opts.m_bTurns[ PlayerOptions::TURN_MIRROR ] );
+	ADD_BOOLEAN_OPTION( turns, "Backwards",    opts.m_bTurns[ PlayerOptions::TURN_BACKWARDS] );
+	ADD_BOOLEAN_OPTION( turns, "Left",         opts.m_bTurns[ PlayerOptions::TURN_LEFT ] );
+	ADD_BOOLEAN_OPTION( turns, "Right",        opts.m_bTurns[ PlayerOptions::TURN_RIGHT ] );
+	ADD_BOOLEAN_OPTION( turns, "Shuffle",      opts.m_bTurns[ PlayerOptions::TURN_SHUFFLE ] );
+	ADD_BOOLEAN_OPTION( turns, "SoftShuffle",  opts.m_bTurns[ PlayerOptions::TURN_SOFT_SHUFFLE ] );
+	ADD_BOOLEAN_OPTION( turns, "SuperShuffle", opts.m_bTurns[ PlayerOptions::TURN_SUPER_SHUFFLE ] );
+
+	XNode *transforms = mods->AppendChild( "Transforms" );
+	ADD_BOOLEAN_OPTION( transforms, "NoHolds",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOHOLDS ] );
+	ADD_BOOLEAN_OPTION( transforms, "NoRolls",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOROLLS ] );
+	ADD_BOOLEAN_OPTION( transforms, "NoMines",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOMINES ] );
+	ADD_BOOLEAN_OPTION( transforms, "Little",      opts.m_bTransforms[ PlayerOptions::TRANSFORM_LITTLE ] );
+	ADD_BOOLEAN_OPTION( transforms, "Wide",        opts.m_bTransforms[ PlayerOptions::TRANSFORM_WIDE ] );
+	ADD_BOOLEAN_OPTION( transforms, "Big",         opts.m_bTransforms[ PlayerOptions::TRANSFORM_BIG ] );
+	ADD_BOOLEAN_OPTION( transforms, "Quick",       opts.m_bTransforms[ PlayerOptions::TRANSFORM_QUICK ] );
+	ADD_BOOLEAN_OPTION( transforms, "BMRize",      opts.m_bTransforms[ PlayerOptions::TRANSFORM_BMRIZE ] );
+	ADD_BOOLEAN_OPTION( transforms, "Skippy",      opts.m_bTransforms[ PlayerOptions::TRANSFORM_SKIPPY ] );
+	ADD_BOOLEAN_OPTION( transforms, "Mines",       opts.m_bTransforms[ PlayerOptions::TRANSFORM_MINES ] );
+	ADD_BOOLEAN_OPTION( transforms, "AttackMines", opts.m_bTransforms[ PlayerOptions::TRANSFORM_ATTACKMINES ] );
+	ADD_BOOLEAN_OPTION( transforms, "Echo",        opts.m_bTransforms[ PlayerOptions::TRANSFORM_ECHO ] );
+	ADD_BOOLEAN_OPTION( transforms, "Stomp",       opts.m_bTransforms[ PlayerOptions::TRANSFORM_STOMP ] );
+	ADD_BOOLEAN_OPTION( transforms, "Planted",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_PLANTED ] );
+	ADD_BOOLEAN_OPTION( transforms, "Floored",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_FLOORED ] );
+	ADD_BOOLEAN_OPTION( transforms, "Twister",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_TWISTER ] );
+	ADD_BOOLEAN_OPTION( transforms, "HoldRolls",   opts.m_bTransforms[ PlayerOptions::TRANSFORM_HOLDROLLS ] );
+	ADD_BOOLEAN_OPTION( transforms, "NoJumps",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOJUMPS ] );
+	ADD_BOOLEAN_OPTION( transforms, "NoHands",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOHANDS ] );
+	ADD_BOOLEAN_OPTION( transforms, "NoLifts",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOLIFTS ] );
+	ADD_BOOLEAN_OPTION( transforms, "NoFakes",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOFAKES ] );
+	ADD_BOOLEAN_OPTION( transforms, "NoQuads",     opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOQUADS ] );
+	ADD_BOOLEAN_OPTION( transforms, "NoStretch",   opts.m_bTransforms[ PlayerOptions::TRANSFORM_NOSTRETCH ] );
+
+#define ADD_FLOAT_OPTION( parent, name, val ) \
+	if ( val != 0.0f ) \
+		parent->AppendChild( name, val )
+
+	XNode *accels = mods->AppendChild( "Accel" );
+	ADD_FLOAT_OPTION( accels, "Boost",     opts.m_fAccels[ PlayerOptions::ACCEL_BOOST ] );
+	ADD_FLOAT_OPTION( accels, "Brake",     opts.m_fAccels[ PlayerOptions::ACCEL_BRAKE ] );
+	ADD_FLOAT_OPTION( accels, "Wave",      opts.m_fAccels[ PlayerOptions::ACCEL_WAVE ] );
+	ADD_FLOAT_OPTION( accels, "Expand",    opts.m_fAccels[ PlayerOptions::ACCEL_EXPAND ] );
+	ADD_FLOAT_OPTION( accels, "Boomerang", opts.m_fAccels[ PlayerOptions::ACCEL_BOOMERANG ] );
+
+	XNode *effects = mods->AppendChild( "Effects" );
+	ADD_FLOAT_OPTION( effects, "Drunk",     opts.m_fEffects[ PlayerOptions::EFFECT_DRUNK ] );
+	ADD_FLOAT_OPTION( effects, "Dizzy",     opts.m_fEffects[ PlayerOptions::EFFECT_DIZZY ] );
+	ADD_FLOAT_OPTION( effects, "Confusion", opts.m_fEffects[ PlayerOptions::EFFECT_CONFUSION ] );
+	ADD_FLOAT_OPTION( effects, "Mini",      opts.m_fEffects[ PlayerOptions::EFFECT_MINI ] );
+	ADD_FLOAT_OPTION( effects, "Tiny",      opts.m_fEffects[ PlayerOptions::EFFECT_TINY ] );
+	ADD_FLOAT_OPTION( effects, "Flip",      opts.m_fEffects[ PlayerOptions::EFFECT_FLIP ] );
+	ADD_FLOAT_OPTION( effects, "Invert",    opts.m_fEffects[ PlayerOptions::EFFECT_INVERT ] );
+	ADD_FLOAT_OPTION( effects, "Tornado",   opts.m_fEffects[ PlayerOptions::EFFECT_TORNADO ] );
+	ADD_FLOAT_OPTION( effects, "Tipsy",     opts.m_fEffects[ PlayerOptions::EFFECT_TIPSY ] );
+	ADD_FLOAT_OPTION( effects, "Bumpy",     opts.m_fEffects[ PlayerOptions::EFFECT_BUMPY ] );
+	ADD_FLOAT_OPTION( effects, "Beat",      opts.m_fEffects[ PlayerOptions::EFFECT_BEAT ] );
+	ADD_FLOAT_OPTION( effects, "XMode",     opts.m_fEffects[ PlayerOptions::EFFECT_XMODE ] );
+	ADD_FLOAT_OPTION( effects, "Twirl",     opts.m_fEffects[ PlayerOptions::EFFECT_TWIRL ] );
+	ADD_FLOAT_OPTION( effects, "Roll",      opts.m_fEffects[ PlayerOptions::EFFECT_ROLL ] );
+
+	XNode *appearances = mods->AppendChild( "Appearances" );
+	ADD_FLOAT_OPTION( appearances, "Hidden",       opts.m_fAppearances[ PlayerOptions::APPEARANCE_HIDDEN ] );
+	ADD_FLOAT_OPTION( appearances, "HiddenOffset", opts.m_fAppearances[ PlayerOptions::APPEARANCE_HIDDEN_OFFSET ] );
+	ADD_FLOAT_OPTION( appearances, "Sudden",       opts.m_fAppearances[ PlayerOptions::APPEARANCE_SUDDEN ] );
+	ADD_FLOAT_OPTION( appearances, "SuddenOffset", opts.m_fAppearances[ PlayerOptions::APPEARANCE_SUDDEN_OFFSET ] );
+	ADD_FLOAT_OPTION( appearances, "Stealth",      opts.m_fAppearances[ PlayerOptions::APPEARANCE_STEALTH ] );
+	ADD_FLOAT_OPTION( appearances, "Blink",        opts.m_fAppearances[ PlayerOptions::APPEARANCE_BLINK ] );
+	ADD_FLOAT_OPTION( appearances, "RandomVanish", opts.m_fAppearances[ PlayerOptions::APPEARANCE_RANDOMVANISH ] );
+
+	XNode *scrolls = mods->AppendChild( "Scrolls" );
+	ADD_FLOAT_OPTION( scrolls, "Reverse",   opts.m_fScrolls[ PlayerOptions::SCROLL_REVERSE ] );
+	ADD_FLOAT_OPTION( scrolls, "Split",     opts.m_fScrolls[ PlayerOptions::SCROLL_SPLIT ] );
+	ADD_FLOAT_OPTION( scrolls, "Alternate", opts.m_fScrolls[ PlayerOptions::SCROLL_ALTERNATE ] );
+	ADD_FLOAT_OPTION( scrolls, "Cross",     opts.m_fScrolls[ PlayerOptions::SCROLL_CROSS ] );
+	ADD_FLOAT_OPTION( scrolls, "Centered",  opts.m_fScrolls[ PlayerOptions::SCROLL_CENTERED ] );
+
+	mods->AppendChild( "NoteSkin", opts.m_sNoteSkin );
+
+	XNode *perspectives = mods->AppendChild( "Perspectives" );
+	perspectives->AppendChild( "Tilt", opts.m_fPerspectiveTilt );
+	perspectives->AppendChild( "Skew", opts.m_fSkew );
+
+	RString speedModType;
+	float speedModValue;
+	if ( opts.m_fTimeSpacing )
+	{
+		speedModType = "ConstantBPM";
+		speedModValue = opts.m_fScrollBPM;
+	}
+	else if ( opts.m_fMaxScrollBPM )
+	{
+		speedModType = "MaxBPM";
+		speedModValue = opts.m_fMaxScrollBPM;
+	}
+	else
+	{
+		speedModType = "Multiplier";
+		speedModValue = opts.m_fScrollSpeed;
+	}
+	mods->AppendChild( "ScrollSpeed", speedModValue )->AppendAttr( "Type", speedModType );
 
 	RString dir = "/Save/Padmiss/";
 	RString fn = dir + Profile::MakeUniqueFileNameNoExtension( dir, sDate + " " ) + ".xml";
