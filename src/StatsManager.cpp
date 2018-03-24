@@ -18,6 +18,7 @@
 #include "NotesWriterSM.h"
 #include "PlayerOptions.h"
 #include "PlayerState.h"
+#include "Player.h"
 
 StatsManager*	STATSMAN = NULL;	// global object accessible from anywhere in the program
 
@@ -455,6 +456,10 @@ void StatsManager::SavePadmissScore( const StageStats *pSS, PlayerNumber pn )
 		speedModValue = opts.m_fScrollSpeed;
 	}
 	mods->AppendChild( "ScrollSpeed", speedModValue )->AppendAttr( "Type", speedModType );
+
+	XNode *timingWindows = xml->AppendChild( "TimingWindows" );
+	FOREACH_ENUM( TimingWindow, tw )
+		timingWindows->AppendChild( TimingWindowToString( tw ), Player::GetWindowSeconds( tw ) );
 
 	RString dir = "/Save/Padmiss/";
 	RString fn = dir + Profile::MakeUniqueFileNameNoExtension( dir, sDate + " " ) + ".xml";
